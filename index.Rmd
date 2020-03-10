@@ -1,0 +1,107 @@
+---
+title: "Migration circle diagram"
+output:
+  html_document:
+    df_print: paged
+    code_download: true
+---
+
+```{r setup}
+library(circlize)
+library(tidyverse)
+```
+
+Načíst data
+
+```{r}
+df <- read_csv2("2015-2017ZMENA.csv")
+df
+```
+
+Upravit data
+
+```{r tidy data}
+dfl <- df %>%
+  # přejmenovat sloupeček `DESTINATION` na `to` 
+  rename(to = DESTINATION) %>%
+  # překlopit do dlouého formátu
+  pivot_longer(ends_with("CHANGE"), names_to = "from") %>%
+  # přejmenovat regiony (původní sloupečky), aby se jmenovaly stejně jako regiony v prvním sloupečku (bez "_CHANGE" a "_" místo mezery v názvu)
+  mutate(from = str_remove(from, "_CHANGE") %>%
+           str_replace("_", " ")) %>%
+  # vyřadit položky, kde je stejný výchozí a cílový region
+  filter(#!(from == to),
+         # vyhodit záporné hodnoty
+         value > 0) %>% 
+  # vybrat jen tři podstatné sloupce
+  select(from, to, value)
+dfl
+```
+
+Zkontrolovat, jestli jsou řádky unikátní 
+
+```{r}
+distinct(dfl, from, to)
+```
+
+Počet řádků stejný, jako u konečného datasetu, takže fajn.
+
+Vykreslit graf:
+
+```{r chart-orig}
+circos.clear()
+chordDiagram(df)
+```
+
+Hmm, to vypadá fakt divně a nevím proč. Zkusíme funkci stavěnou na data frame, ne na matici:
+
+```{r}
+circos.clear()
+chordDiagramFromDataFrame(dfl, directional = 1)
+```
+
+To vypadá líp?
+
+Zkusíme vyhodit menší položky:
+
+```{r}
+dfl_filtered <- dfl %>% 
+  filter(value > 100)
+dfl_filtered
+```
+
+```{r}
+circos.clear()
+chordDiagramFromDataFrame(dfl_filtered, directional = 1)
+```
+
+Alternativní balík
+
+```{r}
+library(ggraph)
+library(tidygraph)
+```
+
+```{r}
+dflg <- tidygraph::as_tbl_graph(dfl)
+```
+
+```{r}
+dflg %>% 
+  tidygraph::activate("nodes")
+```
+
+
+
+```{r}
+
+ggraph(dflg, layout = "linear", circular = T) +
+  geom_edge_arc0(aes(size = 3 * value, color = as.factor(from)), alpha = .3) +
+  geom_node_text(aes(label = name)) + 
+  # geom_node_arc_bar(aes(fill = name, r0 = value)) + 
+  scale_size_continuous(range = c(0,20)) +
+  coord_fixed()
+```
+
+
+
