@@ -23,11 +23,11 @@ Upravit data
 ```{r tidy data}
 dfl <- df %>%
   # přejmenovat sloupeček `DESTINATION` na `to` 
-  rename(to = DESTINATION) %>%
+  rename(from = DESTINATION) %>%
   # překlopit do dlouého formátu
-  pivot_longer(ends_with("CHANGE"), names_to = "from") %>%
+  pivot_longer(ends_with("CHANGE"), names_to = "to") %>%
   # přejmenovat regiony (původní sloupečky), aby se jmenovaly stejně jako regiony v prvním sloupečku (bez "_CHANGE" a "_" místo mezery v názvu)
-  mutate(from = str_remove(from, "_CHANGE") %>%
+  mutate(to = str_remove(to, "_CHANGE") %>%
            str_replace("_", " ")) %>%
   # vyřadit položky, kde je stejný výchozí a cílový region
   filter(#!(from == to),
@@ -65,15 +65,124 @@ To vypadá líp?
 Zkusíme vyhodit menší položky:
 
 ```{r}
+hist(dfl$value, breaks = 100)
+```
+
+
+```{r}
 dfl_filtered <- dfl %>% 
-  filter(value > 100)
+  filter(value > 1e5) %>% 
+  mutate(value = value/1e5,
+         # to = str_replace(to, "Europe", "čáěšžěšéí"),
+         # from = str_replace(from, "Europe", "čáěšžěšéí"),
+         from = str_replace(from, "South-Eastern Asia", "SouthEastern Asia") %>%
+           str_wrap(10),
+         to = str_replace(to, "South-Eastern Asia", "SouthEastern Asia") %>% 
+           str_wrap(10))
 dfl_filtered
 ```
 
 ```{r}
-circos.clear()
-chordDiagramFromDataFrame(dfl_filtered, directional = 1)
+setdiff(dfl_filtered$from, dfl_filtered$to)
+setdiff(dfl_filtered$to, dfl_filtered$from)
 ```
+
+```{r}
+c(EAST_AFR = "darkgreen", MID_AFR = "chartreuse4", NORTH_AFR = "chartreuse3", 
+  SOUTH_AFR = "darkolivegreen", WEST_AFR = "darkolivegreen3", CENT_ASIA = "blue4",
+  EAST_ASIA = "blue1", SOUTH_ASIA = "cornflowerblue", SOUTH_EAST_ASIA = "blue1",
+  WEST_ASIA = "deepskyblue", EAST_EUR = "brown3", NORTH_EUR = "brown1", 
+  SOUTH_EUR = "coral", WEST_EUR = "darkred", CARIB = "blueviolet", 
+  CENT_AM = "darkmagenta", SOUTH_AM = "darkorchid2", NORTH_AM = "darksalmon", 
+  OCE = "deeppink3")
+```
+
+
+
+```{r order}
+order <- c("EAST_AFR", "MID_AFR", "NORTH_AFR", "SOUTH_AFR", "WEST_AFR", 
+           "CENT_ASIA", "EAST_ASIA", "SOUTH_ASIA", "SOUTH_EAST_ASIA", 
+           "WEST_ASIA", "EAST_EUR", "NORTH_EUR", "SOUTH_EUR", "WEST_EUR", 
+           "CARIB", "CENT_AM", "SOUTH_AM", "NORTH_AM", "OCE")
+
+nazevnik <- tribble(~ordered_en, ~ordered_cz, ~color,
+                    "Eastern Africa",NA,"darkgreen",
+                    "Middle Africa",NA,"chartreuse4",
+                    "Northern Africa",NA,"chartreuse3",
+                    "Southern Africa",NA,"darkolivegreen",
+                    "Western Africa",NA,"darkolivegreen3",
+                    "Central Asia",NA,"blue4",
+                    "Eastern Asia",NA,"blue1",
+                    "Southern Asia",NA,"cornflowerblue",
+                    "SouthEastern Asia",NA,"blue1",
+                    "Western Asia",NA,"deepskyblue",
+                    "Eastern Europe",NA,"brown3",
+                    "Northern Europe",NA,"brown1",
+                    "Southern Europe",NA,"coral",
+                    "Western Europe",NA,"darkred",
+                    "Caribbean",NA,"blueviolet",
+                    "Central America",NA,"darkmagenta",
+                    "South America",NA,"darkorchid2",
+                    "Northern America",NA,"darksalmon",
+                    "Oceania",NA,"deeppink3") %>% 
+  mutate(label_wrapped = str_wrap(ordered_en, 10)) # vymen za ordered_cz pro CZ
+
+setdiff(nazevnik$label_wrapped, dfl_filtered$from)
+setdiff(dfl_filtered$from, nazevnik$label_wrapped)
+setdiff(dfl_filtered$to, nazevnik$label_wrapped)
+```
+
+
+```{r barvy}
+barvy_grid <- nazevnik$color
+names(barvy_grid) <- nazevnik$label_wrapped
+barvy_grid
+```
+
+
+```{r barvy-links}
+barvy_links <- dfl_filtered %>% 
+  left_join(nazevnik %>% rename(to = label_wrapped)) %>% 
+  pull(color)
+barvy_links
+```
+
+
+```{r}
+circos.clear()
+chordDiagramFromDataFrame(dfl_filtered,
+                          directional = 1,
+                          grid.col = barvy_grid,
+                          col = barvy_links,
+                          transparency = .1,
+                          link.lwd = 2,
+                          link.border = "white",
+                          order = nazevnik$label_wrapped)
+```
+
+```{r rotated-labels}
+# from https://stackoverflow.com/questions/31943102/rotate-labels-in-a-chorddiagram-r-circlize
+chordDiagramFromDataFrame(dfl_filtered, 
+                          directional = 1,
+                          grid.col = barvy_grid,
+                          col = barvy_links,
+                          transparency = .1,
+                          link.lwd = 2,
+                          link.border = "white",
+                          order = nazevnik$label_wrapped,
+                          annotationTrack = "grid", 
+                          preAllocateTracks = 1)
+circos.trackPlotRegion(track.index = 1, panel.fun = function(x, y) {
+  xlim = get.cell.meta.data("xlim")
+  ylim = get.cell.meta.data("ylim")
+  sector.name = get.cell.meta.data("sector.index")
+  circos.text(mean(xlim), ylim[1] + .4, sector.name, 
+              facing = "clockwise", niceFacing = TRUE, adj = c(0, 0.5))
+  circos.axis(h = "top", labels.cex = 0.5, major.tick.percentage = 0.2, 
+              sector.index = sector.name, track.index = 2)
+}, bg.border = NA)
+```
+
 
 Alternativní balík
 
