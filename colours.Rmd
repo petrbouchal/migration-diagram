@@ -14,7 +14,7 @@ library(flextable)
 library(magrittr)
 ```
 
-```{r}
+```{r, echo=F}
 colors_df_rich <- colors_df %>% 
   mutate(color = " ",
          `RGB for R/CSS` = str_glue("rgb({r}, {g}, {b})"),
@@ -25,7 +25,7 @@ colors_df_rich <- colors_df %>%
 
 ## Individuální barvy
 
-```{r, out.width="100%"}
+```{r, out.width="100%", echo=F, ft.align="left"}
 colors_df_rich %>% 
   flextable(cwidth = 2) %>% 
   bg(j = 2, bg = cols) %>% 
@@ -34,23 +34,30 @@ colors_df_rich %>%
   flextable::width(6, 1) %>% 
   flextable::width(2, 0.6)
 ```
+
 ## Celá paleta
 
 ### Hex list
 
-```{r}
+<pre>
+```{r, results="asis", echo=F, }
 cat(cols, sep = "\n")
 ```
+</pre>
 
 ### Hex do R
 
-```{r}
+<pre>
+```{r, results="asis", echo=F}
 str_glue("c('{str_c(cols, collapse = \"', '\")}')")
 ```
+</pre>
 
 ### Hex JSON
 
-```{r}
+<pre>
+```{r, results="asis", echo=F}
 str_glue("['{str_c(cols, collapse = \"', '\")}']")
 ```
+</pre>
 
