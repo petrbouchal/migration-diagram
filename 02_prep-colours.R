@@ -30,5 +30,5 @@ colors_df <- as.data.frame(colors) %>%
 
 cols <- colors_df$hex
 names(cols) <- colors_df$name
-cols_obj <- color(cols)
+cols_obj <- prismatic::color(cols)
 names(cols_obj) <- colors_df$name

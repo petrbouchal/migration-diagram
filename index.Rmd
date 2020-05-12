@@ -22,7 +22,7 @@ Načíst data
 
 ```{r source colour script}
 source("02_prep-colours.R")
-df <- read_rds("orig-dest-new.rds")
+df <- read_rds("data-processed/orig-dest-new.rds")
 ```
 
 Upravit data
