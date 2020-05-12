@@ -1,0 +1,56 @@
+---
+title: "Colour sheet"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+source("02_prep-colours.R")
+
+library(flextable)
+library(magrittr)
+```
+
+```{r}
+colors_df_rich <- colors_df %>% 
+  mutate(color = " ",
+         `RGB for R/CSS` = str_glue("rgb({r}, {g}, {b})"),
+         `RGB JSON` = str_glue("[{r}, {g}, {b}]")) %>% 
+  select(name, color, everything())
+```
+
+
+## Individuální barvy
+
+```{r, out.width="100%"}
+colors_df_rich %>% 
+  flextable(cwidth = 2) %>% 
+  bg(j = 2, bg = cols) %>% 
+  flextable::width(3:5, .4) %>% 
+  flextable::width(1, 1) %>% 
+  flextable::width(6, 1) %>% 
+  flextable::width(2, 0.6)
+```
+## Celá paleta
+
+### Hex list
+
+```{r}
+cat(cols, sep = "\n")
+```
+
+### Hex do R
+
+```{r}
+str_glue("c('{str_c(cols, collapse = \"', '\")}')")
+```
+
+### Hex JSON
+
+```{r}
+str_glue("['{str_c(cols, collapse = \"', '\")}']")
+```
+
