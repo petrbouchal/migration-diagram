@@ -9,38 +9,39 @@ output:
 ```{r setup}
 library(circlize)
 library(tidyverse)
+library(gt)
+library(skimr)
 ```
+
+```{r source data prep script}
+source("01_prep-data.R")
+```
+
 
 Načíst data
 
-```{r}
-df <- read_csv2("2015-2017ZMENA.csv")
-df
+```{r source colour script}
+source("02_prep-colours.R")
+df <- read_rds("orig-dest-new.rds")
 ```
 
 Upravit data
 
-```{r tidy data}
-dfl <- df %>%
-  # přejmenovat sloupeček `DESTINATION` na `to` 
-  rename(from = DESTINATION) %>%
-  # překlopit do dlouého formátu
-  pivot_longer(ends_with("CHANGE"), names_to = "to") %>%
-  # přejmenovat regiony (původní sloupečky), aby se jmenovaly stejně jako regiony v prvním sloupečku (bez "_CHANGE" a "_" místo mezery v názvu)
-  mutate(to = str_remove(to, "_CHANGE") %>%
-           str_replace("_", " ")) %>%
-  # vyřadit položky, kde je stejný výchozí a cílový region
-  filter(#!(from == to),
-         # vyhodit záporné hodnoty
-         value > 0) %>% 
-  # vybrat jen tři podstatné sloupce
-  select(from, to, value)
+```{r filter data}
+dfl <- df %>% 
+  filter(value > 0) %>% 
+  drop_na() %>% 
+  select(from = origin, to = destination, value)
+```
+
+
+```{r check data}
 dfl
 ```
 
 Zkontrolovat, jestli jsou řádky unikátní 
 
-```{r}
+```{r check unique}
 distinct(dfl, from, to)
 ```
 
@@ -53,6 +54,7 @@ circos.clear()
 chordDiagram(df)
 ```
 
+
 Hmm, to vypadá fakt divně a nevím proč. Zkusíme funkci stavěnou na data frame, ne na matici:
 
 ```{r}
@@ -60,27 +62,21 @@ circos.clear()
 chordDiagramFromDataFrame(dfl, directional = 1)
 ```
 
-To vypadá líp?
 
-Zkusíme vyhodit menší položky:
-
-```{r}
-hist(dfl$value, breaks = 100)
-```
-
-
-```{r}
+```{r filter chords}
 dfl_filtered <- dfl %>% 
+  ungroup() %>% 
   filter(value > 1e5) %>% 
   mutate(value = value/1e5,
          # to = str_replace(to, "Europe", "čáěšžěšéí"),
          # from = str_replace(from, "Europe", "čáěšžěšéí"),
-         from = str_replace(from, "South-Eastern Asia", "SouthEastern Asia") %>%
+         from = str_replace(from, "South-eastern Asia", "SouthEastern Asia") %>%
            str_wrap(10),
-         to = str_replace(to, "South-Eastern Asia", "SouthEastern Asia") %>% 
+         to = str_replace(to, "South-eastern Asia", "SouthEastern Asia") %>% 
            str_wrap(10))
 dfl_filtered
 ```
+
 
 ```{r}
 setdiff(dfl_filtered$from, dfl_filtered$to)
@@ -88,129 +84,159 @@ setdiff(dfl_filtered$to, dfl_filtered$from)
 ```
 
 ```{r}
-c(EAST_AFR = "darkgreen", MID_AFR = "chartreuse4", NORTH_AFR = "chartreuse3", 
-  SOUTH_AFR = "darkolivegreen", WEST_AFR = "darkolivegreen3", CENT_ASIA = "blue4",
-  EAST_ASIA = "blue1", SOUTH_ASIA = "cornflowerblue", SOUTH_EAST_ASIA = "blue1",
-  WEST_ASIA = "deepskyblue", EAST_EUR = "brown3", NORTH_EUR = "brown1", 
-  SOUTH_EUR = "coral", WEST_EUR = "darkred", CARIB = "blueviolet", 
-  CENT_AM = "darkmagenta", SOUTH_AM = "darkorchid2", NORTH_AM = "darksalmon", 
-  OCE = "deeppink3")
+scales::show_col(cols, borders = F)
 ```
 
+```{r}
+names(cols)
+```
 
 
 ```{r order}
-order <- c("EAST_AFR", "MID_AFR", "NORTH_AFR", "SOUTH_AFR", "WEST_AFR", 
-           "CENT_ASIA", "EAST_ASIA", "SOUTH_ASIA", "SOUTH_EAST_ASIA", 
-           "WEST_ASIA", "EAST_EUR", "NORTH_EUR", "SOUTH_EUR", "WEST_EUR", 
-           "CARIB", "CENT_AM", "SOUTH_AM", "NORTH_AM", "OCE")
+nazevnik <- tribble(~ordered_en, ~ordered_cz, ~color_old, ~color,
+                    "Eastern Africa","Východní Afrika","darkgreen",cols[["yellow"]],
+                    "Middle Africa","Střední Afrika","chartreuse4",cols[["yellow_l"]],
+                    "Northern Africa","Severní Afrika","chartreuse3",cols[["orange"]],
+                    "Southern Africa","Jižní Afrika","darkolivegreen",cols[["orange_l"]],
+                    "Western Africa","Západní Afrika","darkolivegreen3","#e6bd33",
+                    "Central Asia","Střední Asie","blue4",cols[["blue_dark"]],
+                    "Eastern Asia","Východní Asie","blue1",cols[["blue_dark_l"]],
+                    "Southern Asia","Jižní Asie","cornflowerblue",cols[["blue_light_l"]],
+                    "SouthEastern Asia","Jihovýchodní Asie","blue1",cols[["blue_light"]],
+                    "Western Asia","Západní Asie","deepskyblue","#023FA5",
+                    "Eastern Europe","Východní Evropa","brown3",cols[["brown_l"]],
+                    "Northern Europe","Severní Evropa","brown1",cols[["brown"]],
+                    "Southern Europe","Jižní Evropa","coral",cols[["purple"]],
+                    "Western Europe","Západní Evropa","darkred",cols[["purple_l"]],
+                    "Caribbean","Karibik","blueviolet",cols[["wine"]],
+                    "Central America","Střední Amerika","darkmagenta",cols[["green_l"]],
+                    "South America","Jižní Amerika","darkorchid2","#006600",
+                    "Northern America","Severní Amerika","darksalmon",cols[["green"]],
+                    "Oceania","Oceánie","deeppink3", cols[["wine_l"]]) %>% 
+  mutate(label_wrapped_en = str_wrap(ordered_en, 10),
+         label_wrapped_cz = str_wrap(ordered_cz, 10))
 
-nazevnik <- tribble(~ordered_en, ~ordered_cz, ~color,
-                    "Eastern Africa",NA,"darkgreen",
-                    "Middle Africa",NA,"chartreuse4",
-                    "Northern Africa",NA,"chartreuse3",
-                    "Southern Africa",NA,"darkolivegreen",
-                    "Western Africa",NA,"darkolivegreen3",
-                    "Central Asia",NA,"blue4",
-                    "Eastern Asia",NA,"blue1",
-                    "Southern Asia",NA,"cornflowerblue",
-                    "SouthEastern Asia",NA,"blue1",
-                    "Western Asia",NA,"deepskyblue",
-                    "Eastern Europe",NA,"brown3",
-                    "Northern Europe",NA,"brown1",
-                    "Southern Europe",NA,"coral",
-                    "Western Europe",NA,"darkred",
-                    "Caribbean",NA,"blueviolet",
-                    "Central America",NA,"darkmagenta",
-                    "South America",NA,"darkorchid2",
-                    "Northern America",NA,"darksalmon",
-                    "Oceania",NA,"deeppink3") %>% 
-  mutate(label_wrapped = str_wrap(ordered_en, 10)) # vymen za ordered_cz pro CZ
+setdiff(nazevnik$label_wrapped_en, dfl_filtered$from)
+setdiff(dfl_filtered$from, nazevnik$label_wrapped_en)
+setdiff(dfl_filtered$to, nazevnik$label_wrapped_en)
 
-setdiff(nazevnik$label_wrapped, dfl_filtered$from)
-setdiff(dfl_filtered$from, nazevnik$label_wrapped)
-setdiff(dfl_filtered$to, nazevnik$label_wrapped)
+setdiff(nazevnik$label_wrapped_en, dfl_filtered$from)
+setdiff(dfl_filtered$from, nazevnik$label_wrapped_en)
+setdiff(dfl_filtered$to, nazevnik$label_wrapped_en)
 ```
-
-
-```{r barvy}
-barvy_grid <- nazevnik$color
-names(barvy_grid) <- nazevnik$label_wrapped
-barvy_grid
-```
-
-
-```{r barvy-links}
-barvy_links <- dfl_filtered %>% 
-  left_join(nazevnik %>% rename(to = label_wrapped)) %>% 
-  pull(color)
-barvy_links
-```
-
 
 ```{r}
-circos.clear()
-chordDiagramFromDataFrame(dfl_filtered,
-                          directional = 1,
-                          grid.col = barvy_grid,
-                          col = barvy_links,
-                          transparency = .1,
-                          link.lwd = 2,
-                          link.border = "white",
-                          order = nazevnik$label_wrapped)
+length(unique(nazevnik$label_wrapped_cz)) == length(nazevnik$label_wrapped_cz)
 ```
 
-```{r rotated-labels}
+
+```{r plotting function}
 # from https://stackoverflow.com/questions/31943102/rotate-labels-in-a-chorddiagram-r-circlize
-chordDiagramFromDataFrame(dfl_filtered, 
-                          directional = 1,
-                          grid.col = barvy_grid,
-                          col = barvy_links,
-                          transparency = .1,
-                          link.lwd = 2,
-                          link.border = "white",
-                          order = nazevnik$label_wrapped,
-                          annotationTrack = "grid", 
-                          preAllocateTracks = 1)
-circos.trackPlotRegion(track.index = 1, panel.fun = function(x, y) {
-  xlim = get.cell.meta.data("xlim")
-  ylim = get.cell.meta.data("ylim")
-  sector.name = get.cell.meta.data("sector.index")
-  circos.text(mean(xlim), ylim[1] + .4, sector.name, 
-              facing = "clockwise", niceFacing = TRUE, adj = c(0, 0.5))
-  circos.axis(h = "top", labels.cex = 0.5, major.tick.percentage = 0.2, 
-              sector.index = sector.name, track.index = 2)
-}, bg.border = NA)
+make_circle_plot <- function(cz = FALSE) {
+  
+  barvy_grid <- nazevnik$color
+  
+  names(barvy_grid) <- if(cz) nazevnik$label_wrapped_cz else
+    nazevnik$label_wrapped_en
+  
+  barvy_links <- dfl_filtered %>% 
+    left_join(nazevnik %>% rename(to = label_wrapped_en)) %>% 
+    pull(color)
+  
+  if(cz) {
+    plot_data <- dfl_filtered %>% 
+      left_join(nazevnik %>% select(from = label_wrapped_en, 
+                                    label_wrapped_cz)) %>% 
+      select(-from) %>%
+      rename(from = label_wrapped_cz) %>% 
+      left_join(nazevnik %>% select(to = label_wrapped_en,
+                                    label_wrapped_cz)) %>% 
+      select(-to) %>%
+      rename(to = label_wrapped_cz) %>% 
+      select(from, to, value)
+  } else {
+    plot_data <- dfl_filtered
+  }
+  
+  # print(plot_data)
+  
+  order_list <- if(cz) {nazevnik$label_wrapped_cz
+  } else {
+    nazevnik$label_wrapped_en
+  }
+  
+  # plot_data$to %in% order_list
+  # plot_data$from %in% order_list
+  
+  par(lheight = .8)
+  chordDiagramFromDataFrame(plot_data,
+                            directional = 1,
+                            grid.col = barvy_grid,
+                            col = barvy_links,
+                            transparency = .1,
+                            link.lwd = 2,
+                            link.border = "white",
+                            order = order_list,
+                            annotationTrack = "grid",
+                            preAllocateTracks = 1)
+  circos.trackPlotRegion(track.index = 1, panel.fun = function(x, y) {
+    xlim = get.cell.meta.data("xlim")
+    ylim = get.cell.meta.data("ylim")
+    sector.name = get.cell.meta.data("sector.index")
+    circos.text(mean(xlim), ylim[1] + .4, sector.name,
+                facing = "clockwise", niceFacing = TRUE, adj = c(0, 0.5))
+    circos.axis(h = "top", labels.cex = 0.5, major.tick.percentage = 0.2,
+                sector.index = sector.name, track.index = 2)
+  }, bg.border = NA)
+  
+  # return(plot_data)
+}
 ```
 
 
-Alternativní balík
+```{r plot-en}
+cairo_pdf(file = "chart-output/circle_en.pdf", width = 8, height = 8)
+make_circle_plot(cz = FALSE)
+dev.off()
+```
+
+```{r plot-cz}
+cairo_pdf(file = "chart-output/circle_cz.pdf", width = 8, height = 8)
+make_circle_plot(cz = TRUE)
+dev.off()
+```
 
 ```{r}
-library(ggraph)
-library(tidygraph)
+czd <- make_circle_plot(cz = T)
 ```
+
+
+## Rozdíly mezi verzemi
 
 ```{r}
-dflg <- tidygraph::as_tbl_graph(dfl)
+source("98_use-preprocessed-data.R")
+
+compar <- dfl_filtered %>% 
+  mutate(flow = paste(to, "to", from)) %>% 
+  select(-from, -to) %>% 
+  full_join(dflo_filtered %>% 
+              mutate(flow = paste(from, "to", to)) %>% 
+              select(-from, -to, value_old = value)
+  ) %>% 
+  replace_na(replace = list(value = 0, value = 0)) %>% 
+  select(flow, value_old, value) %>% 
+  mutate(diff = value - value_old,
+         diff_pct = diff/value) %>% 
+  arrange(desc(abs(diff_pct)))
+compar
 ```
+
 
 ```{r}
-dflg %>% 
-  tidygraph::activate("nodes")
+compar %>% 
+  gt::gt() %>% 
+  fmt_number(2:4, decimals = 1) %>% 
+  fmt_percent(5, decimals = 1)
 ```
-
-
-
-```{r}
-
-ggraph(dflg, layout = "linear", circular = T) +
-  geom_edge_arc0(aes(size = 3 * value, color = as.factor(from)), alpha = .3) +
-  geom_node_text(aes(label = name)) + 
-  # geom_node_arc_bar(aes(fill = name, r0 = value)) + 
-  scale_size_continuous(range = c(0,20)) +
-  coord_fixed()
-```
-
 
 
