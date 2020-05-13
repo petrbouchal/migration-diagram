@@ -191,6 +191,7 @@ make_circle_plot <- function(cz = FALSE) {
   
   # return(plot_data)
 }
+make_circle_plot(cz = FALSE)
 ```
 
 
@@ -198,18 +199,15 @@ make_circle_plot <- function(cz = FALSE) {
 cairo_pdf(file = "chart-output/circle_en.pdf", width = 8, height = 8)
 make_circle_plot(cz = FALSE)
 dev.off()
+make_circle_plot(cz = FALSE)
 ```
 
 ```{r plot-cz}
 cairo_pdf(file = "chart-output/circle_cz.pdf", width = 8, height = 8)
 make_circle_plot(cz = TRUE)
 dev.off()
+make_circle_plot(cz = TRUE)
 ```
-
-```{r}
-czd <- make_circle_plot(cz = T)
-```
-
 
 ## Rozdíly mezi verzemi
 
