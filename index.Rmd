@@ -168,12 +168,23 @@ make_circle_plot <- function(cz = FALSE) {
   # plot_data$to %in% order_list
   # plot_data$from %in% order_list
   
+  arrow_order <- 16
+  
   par(lheight = .8)
   chordDiagramFromDataFrame(plot_data,
                             directional = 1,
+                            link.arr.type = "triangle",
+                            link.arr.width = .30,
+                            link.arr.length = .30,
+                            link.arr.lwd = 2,
+                            # link.arr.col = barvy_links,
+                            link.arr.col = c(rep(NA, arrow_order),
+                                             "#023FA5",
+                                             rep(NA, nrow(plot_data)-1-arrow_order)),
+                            direction.type = "arrows+diffHeight",
                             grid.col = barvy_grid,
                             col = barvy_links,
-                            transparency = .1,
+                            transparency = .2,
                             link.lwd = 2,
                             link.border = "white",
                             order = order_list,
