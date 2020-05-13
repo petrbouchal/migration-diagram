@@ -174,7 +174,7 @@ make_circle_plot <- function(cz = FALSE) {
   par(lheight = .8)
   chordDiagramFromDataFrame(plot_data,
                             directional = -1,
-                            diffHeight = uh(-5, "mm"),
+                            diffHeight = uh(-3, "mm"),
                             link.arr.type = "triangle",
                             link.arr.width = .30,
                             link.arr.length = .30,
