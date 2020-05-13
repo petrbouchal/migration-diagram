@@ -140,7 +140,7 @@ make_circle_plot <- function(cz = FALSE) {
     nazevnik$label_wrapped_en
   
   barvy_links <- dfl_filtered %>% 
-    left_join(nazevnik %>% rename(to = label_wrapped_en)) %>% 
+    left_join(nazevnik %>% rename(from = label_wrapped_en)) %>% 
     pull(color)
   
   if(cz) {
