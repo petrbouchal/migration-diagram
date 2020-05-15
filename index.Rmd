@@ -120,9 +120,6 @@ setdiff(nazevnik$label_wrapped_en, dfl_filtered$from)
 setdiff(dfl_filtered$from, nazevnik$label_wrapped_en)
 setdiff(dfl_filtered$to, nazevnik$label_wrapped_en)
 
-setdiff(nazevnik$label_wrapped_en, dfl_filtered$from)
-setdiff(dfl_filtered$from, nazevnik$label_wrapped_en)
-setdiff(dfl_filtered$to, nazevnik$label_wrapped_en)
 ```
 
 ```{r}
