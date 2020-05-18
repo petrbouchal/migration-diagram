@@ -14,7 +14,7 @@ library(skimr)
 ```
 
 ```{r source data prep script}
-source("01_prep-data.R")
+# source("01_prep-data.R")
 ```
 
 
@@ -66,7 +66,7 @@ chordDiagramFromDataFrame(dfl, directional = 1)
 ```{r filter chords}
 dfl_filtered <- dfl %>% 
   ungroup() %>% 
-  filter(value > 5e4) %>% 
+  filter(value > 8e4) %>% 
   mutate(value = value/1e5,
          # to = str_replace(to, "Europe", "čáěšžěšéí"),
          # from = str_replace(from, "Europe", "čáěšžěšéí"),
@@ -166,7 +166,8 @@ make_circle_plot <- function(cz = FALSE) {
   # plot_data$to %in% order_list
   # plot_data$from %in% order_list
   
-  arrow_order <- 34
+  # arrow_order <- 34
+  arrow_order <- 24
   
   par(lheight = .8)
   chordDiagramFromDataFrame(plot_data,
