@@ -197,7 +197,7 @@ make_circle_plot <- function(cz = FALSE) {
     circos.text(mean(xlim), ylim[1] + .4, sector.name,
                 facing = "clockwise", niceFacing = TRUE, adj = c(0, 0.5))
     circos.axis(h = "top", labels.cex = 0.5, major.at = seq(0, 100, by = 5),
-                sector.index = sector.name, track.index = 2, minor.ticks = 3)
+                sector.index = sector.name, track.index = 2, minor.ticks = 4)
   }, bg.border = NA)
   
   # return(plot_data)
