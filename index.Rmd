@@ -11,6 +11,7 @@ library(circlize)
 library(tidyverse)
 library(gt)
 library(skimr)
+library(officer)
 ```
 
 ```{r source data prep script}
@@ -218,6 +219,66 @@ cairo_pdf(file = "chart-output/circle_cz.pdf", width = 8, height = 8)
 make_circle_plot(cz = TRUE)
 dev.off()
 make_circle_plot(cz = TRUE)
+```
+
+## Ostatní formáty
+
+```{r tiff-plot-en}
+ragg::agg_tiff(filename = "chart-output/circle_en.tiff", 
+               width = 297, height = 297, units = "mm", res = 300, pointsize = 16)
+make_circle_plot(cz = FALSE)
+dev.off()
+```
+
+```{r tiff-plot-cz}
+ragg::agg_tiff(filename = "chart-output/circle_cz.tiff", 
+               width = 297, height = 297, units = "mm", res = 300, pointsize = 16)
+make_circle_plot(cz = TRUE)
+dev.off()
+```
+
+```{r svg-plot}
+svglite::svglite(file = "chart-output/circle_cz.svg", width = 8, height = 8)
+make_circle_plot(cz = TRUE)
+dev.off()
+
+svglite::svglite(file = "chart-output/circle_en.svg", width = 8, height = 8)
+make_circle_plot(cz = FALSE)
+dev.off()
+```
+
+```{r emf-plot}
+devEMF::emf("chart-output/circle_cz.emf")
+make_circle_plot(cz = TRUE)
+dev.off()
+
+devEMF::emf("chart-output/circle_en.emf")
+make_circle_plot(cz = FALSE)
+dev.off()
+```
+
+
+```{r pptx}
+read_pptx() %>% 
+  add_slide() %>% 
+  ph_with(location = ph_location_fullsize(),
+                   value = plot_instr(code = {make_circle_plot(cz = TRUE)})) %>%
+  add_slide() %>% 
+  ph_with(location = ph_location_fullsize(),
+                   value = external_img("chart-output/circle_en.svg")) %>% 
+  add_slide() %>% 
+  ph_with(location = ph_location_fullsize(),
+                   value = external_img("chart-output/circle_en.emf")) %>% 
+  add_slide() %>% 
+  ph_with(location = ph_location_fullsize(),
+                   value = plot_instr(code = {make_circle_plot(cz = FALSE)})) %>%
+  add_slide() %>% 
+  ph_with(location = ph_location_fullsize(),
+                   value = external_img("chart-output/circle_cz.svg")) %>% 
+  add_slide() %>% 
+  ph_with(location = ph_location_fullsize(),
+                   value = external_img("chart-output/circle_cz.emf")) %>% 
+  print(target = "chart-output/charts.pptx")
 ```
 
 ## Rozdíly mezi verzemi

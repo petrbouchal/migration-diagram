@@ -199,6 +199,13 @@
       "Repository": "CRAN",
       "Hash": "6c8fe8fa26a23b79949375d372c7b395"
     },
+    "devEMF": {
+      "Package": "devEMF",
+      "Version": "3.7",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "f0cf99cbcaaa2bc49be09ad34504b3e5"
+    },
     "digest": {
       "Package": "digest",
       "Version": "0.6.25",
@@ -463,10 +470,10 @@
     },
     "officer": {
       "Package": "officer",
-      "Version": "0.3.8",
+      "Version": "0.3.11",
       "Source": "Repository",
       "Repository": "CRAN",
-      "Hash": "c6d390c97004cb6bd07bf0ef1af3f08b"
+      "Hash": "029bc4575fc5292a57e05839b2b89a36"
     },
     "openssl": {
       "Package": "openssl",
@@ -565,6 +572,13 @@
       "Source": "Repository",
       "Repository": "CRAN",
       "Hash": "97def703420c8ab10d8f0e6c72101e02"
+    },
+    "ragg": {
+      "Package": "ragg",
+      "Version": "0.2.0",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "397fb678b98219973be9f7945f1c22b2"
     },
     "readr": {
       "Package": "readr",
@@ -710,6 +724,13 @@
       "Source": "Repository",
       "Repository": "CRAN",
       "Hash": "0759e6b6c0957edb1311028a49a35e76"
+    },
+    "svglite": {
+      "Package": "svglite",
+      "Version": "1.2.3",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "ed61a9516ba30e7ebe72855931007255"
     },
     "sys": {
       "Package": "sys",
