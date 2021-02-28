@@ -167,9 +167,6 @@ make_circle_plot <- function(cz = FALSE) {
   # plot_data$to %in% order_list
   # plot_data$from %in% order_list
   
-  # arrow_order <- 34
-  arrow_order <- 24
-  
   par(lheight = .8)
   chordDiagramFromDataFrame(plot_data,
                             directional = -1,
@@ -179,9 +176,13 @@ make_circle_plot <- function(cz = FALSE) {
                             link.arr.length = .30,
                             link.arr.lwd = 2,
                             # link.arr.col = barvy_links,
-                            link.arr.col = c(rep(NA, arrow_order),
+                            link.arr.col = c(rep(NA, 10),
+                                             "#853946",
+                                             rep(NA, 9),
                                              "#023FA5",
-                                             rep(NA, nrow(plot_data)-1-arrow_order)),
+                                             rep(NA, 3),
+                                             "#023FA5",
+                                             rep(NA, nrow(plot_data)-4-21)),
                             direction.type = "arrows+diffHeight",
                             grid.col = barvy_grid,
                             col = barvy_links,
